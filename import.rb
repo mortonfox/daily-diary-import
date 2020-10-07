@@ -45,14 +45,26 @@ browser.at_css('#submit_form').click
 csvdata.each { |date, value|
   puts "Posting data for #{date} ..."
 
-  browser.goto('https://www.dailydiary.com/myquestions/892755/how-much-do-you-weigh-today/answer')
-  browser.at_css('#AnswerDate').focus.type(date.strftime('%m%d%Y'))
-  browser.at_css('#AnswerTime').focus.type('1000A')
-  browser.at_css('#ValueA').evaluate("this.value = '#{value}'")
+  retries = 0
 
-  # browser.screenshot(path: 'hello.png')
+  begin
+    browser.goto('https://www.dailydiary.com/myquestions/892755/how-much-do-you-weigh-today/answer')
+    browser.at_css('#AnswerDate').focus.type(date.strftime('%m%d%Y'))
+    browser.at_css('#AnswerTime').focus.type('1000A')
+    browser.at_css('#ValueA').evaluate("this.value = '#{value}'")
 
-  browser.at_css('#submit_save').click
+    # browser.screenshot(path: 'hello.png')
+
+    browser.at_css('#submit_save').click
+  rescue StandardError
+    retries += 1
+    if retries <= 3
+      puts 'Retrying...'
+      sleep(1)
+      retry
+    end
+    raise
+  end
 
   sleep(1)
 }
